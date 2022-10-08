@@ -283,8 +283,11 @@ namespace Assets.Serialization
             var id = (int)ReadNumber(enclosingId);
             SkipWhitespace();
 
+            // this was altered
             // You've got the id # of the object.  Are we done now?
-            throw new NotImplementedException("Fill me in");
+            if (idTable.TryGetValue(id, out object o)){
+                return o;
+            }
 
             // Assuming we aren't done, let's check to make sure there's a { next
             SkipWhitespace();
@@ -305,15 +308,18 @@ namespace Assets.Serialization
                 throw new Exception(
                     $"Expected a type name (a string) in 'type: ...' expression for object id {id}, but instead got {typeName}");
 
+            // this was altered
             // Great!  Now what?
-            throw new NotImplementedException("Fill me in");
+            object obj = Assets.Serialization.Utilities.MakeInstance(type);
+            idTable[id] = obj;
 
             // Read the fields until we run out of them
             while (!End && PeekChar != '}')
             {
                 var (field, value) = ReadField(id);
+                // this was altered
                 // We've got a field and a value.  Now what?
-                throw new NotImplementedException("Fill me in");
+                Assets.Serialization.Utilities.SetFieldByName(obj, field, value);
             }
 
             if (End)
@@ -321,8 +327,9 @@ namespace Assets.Serialization
 
             GetChar();  // Swallow close bracket
 
+            // this was altered
             // We're done.  Now what?
-            throw new NotImplementedException("Fill me in");
+            return obj;
         }
 
     }

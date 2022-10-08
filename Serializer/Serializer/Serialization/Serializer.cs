@@ -190,28 +190,30 @@ namespace Assets.Serialization
             switch (o)
             {
                 case null:
-                    throw new NotImplementedException("Fill me in");
+                    Write("null");
                     break;
 
                 case int i:
-                    throw new NotImplementedException("Fill me in");
+                    Write(i);
                     break;
 
                 case float f:
-                    throw new NotImplementedException("Fill me in");
+                    Write(f);
                     break;
 
                 // Not: don't worry about handling strings that contain quote marks
                 case string s:
-                    throw new NotImplementedException("Fill me in");
+                    Write("\"");
+                    Write(s);
+                    Write("\"");
                     break;
 
                 case bool b:
-                    throw new NotImplementedException("Fill me in");
+                    Write(b);
                     break;
 
                 case IList list:
-                    throw new NotImplementedException("Fill me in");
+                    WriteList(list);
                     break;
 
                 default:
@@ -223,6 +225,19 @@ namespace Assets.Serialization
             }
         }
 
+
+        private string RemoveNamespace(string s)
+        {
+            int newStart = 0;
+            for (int i = 0; i < s.Length; i++)
+            {
+                if (s[i] == '.')
+                {
+                    newStart = i+1;
+                }
+            }
+            return s.Remove(0, newStart);
+        }
         /// <summary>
         /// Serialize a complex object (i.e. a class object)
         /// If this object has already been output, just output #id, where is is it's id from GetID.
@@ -231,7 +246,31 @@ namespace Assets.Serialization
         /// <param name="o">Object to serialize</param>
         private void WriteComplexObject(object o)
         {
-            throw new NotImplementedException("Fill me in");
+            int objId;
+            bool objWritten;
+            (objId, objWritten) = GetId(o);
+            // automatically write the object ID
+            Write("#");
+            Write(objId);
+            // then, if the object hasn't been written yet, serialize it!
+            if (objWritten)
+            {
+                IEnumerable<KeyValuePair<string, object>> fieldTable = Assets.Serialization.Utilities.SerializedFields(o);
+                Write("{type:");
+                Type typer = o.GetType();
+                // close, need to filter out the FakeUnity.
+                Write("\"");
+                Write(RemoveNamespace(typer.ToString()));
+                Write("\"");
+                foreach (KeyValuePair<string, object> nomen in fieldTable)
+                {
+                    Write(",");
+                    Write(nomen.Key);
+                    Write(":");
+                    WriteObject(nomen.Value);
+                }
+                Write("}");
+            } 
         }
     }
 }
